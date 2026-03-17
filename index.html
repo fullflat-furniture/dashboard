@@ -368,6 +368,7 @@ const CHANNELS = [
   { id:'google',    label:'Google Ads',   icon:'G',  bg:'#F66E4C', field:'google' },
   { id:'instagram', label:'Instagram',    icon:'IG', bg:'#DCAA6D', field:'instagram' },
   { id:'incall',    label:'Incoming Call',icon:'☎',  bg:'#7A8A85', field:'incall' },
+  { id:'ai',        label:'AI',           icon:'AI', bg:'#8B5CF6', field:'ai' },
   { id:'other',     label:'Другое',       icon:'…',  bg:'#A8B5B0', field:'other' },
 ];
 
@@ -484,11 +485,13 @@ function renderMkt(daily, sp, {pdl,pdq,pwl,pwq,pws}) {
     chTotals.google.leads    += +r.leads_google||0;
     chTotals.instagram.leads += +r.leads_instagram||0;
     chTotals.incall.leads    += +r.leads_incall||0;
+    chTotals.ai.leads       += +r.leads_ai||0;
     chTotals.other.leads     += +r.leads_other||0;
     chTotals.meta.qual       += +r.qual_meta||0;
     chTotals.google.qual     += +r.qual_google||0;
     chTotals.instagram.qual  += +r.qual_instagram||0;
     chTotals.incall.qual     += +r.qual_incall||0;
+    chTotals.ai.qual        += +r.qual_ai||0;
     chTotals.other.qual      += +r.qual_other||0;
     chTotals.meta.spend      += +r.spend_meta||0;
     chTotals.google.spend    += +r.spend_google||0;
@@ -587,7 +590,7 @@ function renderChannelStrips(daily) {
   let html = '';
   CHANNELS.forEach(ch => {
     const leadsField = `leads_${ch.id}`;
-    const spendField = ch.id !== 'incall' ? `spend_${ch.id}` : null;
+    const spendField = (ch.id !== 'incall' && ch.id !== 'ai') ? `spend_${ch.id}` : null;
 
     // build per-day maps
     const lMap = {}, sMap = {};
