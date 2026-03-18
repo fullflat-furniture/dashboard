@@ -465,10 +465,10 @@ async function loadAll() {
     const dk = dateKey(dt);
     if (!dayData[dk]) dayData[dk] = { leads: {}, quals: {} };
 
-    const src = srcKey(row['Lead Source'] || row['Markering lead status'] ? (row['Lead Source']||'') : '');
+    const src = srcKey(row['Lead Source'] || row['Markening lead Status'] ? (row['Lead Source']||'') : '');
     // Actually Lead Source is col A, Marketing lead status is col B
     const leadSrc = srcKey(row['Lead Source'] || '');
-    const status = (row['Markering lead status'] || row['Marketing lead status'] || '').trim();
+    const status = (row['Markening lead Status'] || row['Markening lead Status'] || '').trim();
     const isQual = status.toLowerCase() === 'qualified';
 
     dayData[dk].leads[leadSrc] = (dayData[dk].leads[leadSrc] || 0) + 1;
