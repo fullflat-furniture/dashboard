@@ -56,6 +56,19 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .sec-title{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:32px 0 14px;display:flex;align-items:center;gap:10px}
 .sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
 
+/* ── WEEK TABLE ── */
+.week-grid{margin-bottom:0}
+
+/* ── FUNNEL KPI ── */
+.funnel-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.fk-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;position:relative;overflow:hidden}
+.fk-top{position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+.fk-label{font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.fk-count{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:4px}
+.fk-sum{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.fk-sub{font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
+@media(max-width:900px){.funnel-kpi{grid-template-columns:repeat(2,1fr)}}
+
 /* ── SUM / MONTH ── */
 .sum-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
 .sum-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
@@ -177,10 +190,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
     <div class="kpi"><div class="kpi-top" style="background:var(--coral)"></div><div class="kpi-label">Квал. лиды (месяц)</div><div class="kpi-val" id="k-qual" style="color:var(--coral)">—</div><div class="kpi-meta">план <b id="kp-qual">—</b>&nbsp;<span class="pill" id="kb-qual">—</span></div></div>
     <div class="kpi"><div class="kpi-top" style="background:var(--sand)"></div><div class="kpi-label">CPL (AED)</div><div class="kpi-val" id="k-cpl" style="color:var(--sand)">—</div><div class="kpi-meta">план <b id="kp-cpl">—</b>&nbsp;<span class="pill" id="kb-cpl">—</span></div></div>
     <div class="kpi"><div class="kpi-top" style="background:var(--green)"></div><div class="kpi-label">CPQL (AED)</div><div class="kpi-val" id="k-cpql" style="color:var(--green)">—</div><div class="kpi-meta">план <b id="kp-cpql">—</b>&nbsp;<span class="pill" id="kb-cpql">—</span></div></div>
-    <div class="kpi"><div class="kpi-top" style="background:var(--coral)"></div><div class="kpi-label">Бюджет (AED)</div><div class="kpi-val" id="k-spend" style="color:var(--coral)">—</div><div class="kpi-meta">план <b>62 000</b>&nbsp;<span class="pill" id="kb-spend">—</span></div></div>
+    <div class="kpi"><div class="kpi-top" style="background:var(--coral)"></div><div class="kpi-label">Бюджет (AED)</div><div class="kpi-val" id="k-spend" style="color:var(--coral)">—</div><div class="kpi-meta">план <b id="kp-spend">—</b>&nbsp;<span class="pill" id="kb-spend">—</span></div></div>
   </div>
 
-  <!-- Все лиды по дням (без расхода) -->
+  <!-- Все лиды по дням -->
   <div class="strip">
     <div class="strip-hd"><div class="strip-hd-title">Все лиды / Квалы по дням</div></div>
     <div class="strip-row" id="row-all"></div>
@@ -190,27 +203,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
   <div class="sec-title">Лиды по каналам — Meta · Google · Instagram · SEO · Other</div>
   <div id="channel-strips"></div>
 
-  <!-- Неделя + Месяц -->
-  <div class="sum-row">
-    <div class="sum-card">
-      <div class="sum-hd">📆 Текущая неделя</div>
-      <div class="sum-grid">
-        <div><div class="sum-lbl">Лиды</div><div class="sum-nums"><div class="sum-fact" id="wl" style="color:var(--green)">—</div><div class="sum-plan" id="wlp">/—</div></div><div class="mb"><div class="mf" id="wlb"></div></div><div class="mp" id="wlpct">—</div></div>
-        <div><div class="sum-lbl">Квалы</div><div class="sum-nums"><div class="sum-fact" id="wq" style="color:var(--coral)">—</div><div class="sum-plan" id="wqp">/—</div></div><div class="mb"><div class="mf" id="wqb"></div></div><div class="mp" id="wqpct">—</div></div>
-        <div><div class="sum-lbl">CPL</div><div class="sum-nums"><div class="sum-fact" id="wc" style="color:var(--sand)">—</div><div class="sum-plan" id="wcp">/—</div></div><div class="mb"><div class="mf" id="wcb"></div></div><div class="mp" id="wcpct">—</div></div>
-        <div><div class="sum-lbl">Spend</div><div class="sum-nums"><div class="sum-fact" id="ws" style="color:var(--green)">—</div></div><div class="mb"><div class="mf" id="wsb"></div></div><div class="mp" id="wspct">—</div></div>
-      </div>
-    </div>
-    <div class="sum-card">
-      <div class="sum-hd" id="month-title">🗓️ Текущий месяц</div>
-      <div class="sum-grid">
-        <div><div class="sum-lbl">Лиды</div><div class="sum-nums"><div class="sum-fact" id="ml" style="color:var(--green)">—</div><div class="sum-plan" id="mlp">/—</div></div><div class="mb"><div class="mf" id="mlb"></div></div><div class="mp" id="mlpct">—</div></div>
-        <div><div class="sum-lbl">Квалы</div><div class="sum-nums"><div class="sum-fact" id="mq" style="color:var(--coral)">—</div><div class="sum-plan" id="mqp">/—</div></div><div class="mb"><div class="mf" id="mqb"></div></div><div class="mp" id="mqpct">—</div></div>
-        <div><div class="sum-lbl">CPL</div><div class="sum-nums"><div class="sum-fact" id="mc" style="color:var(--sand)">—</div><div class="sum-plan" id="mcp">/—</div></div><div class="mb"><div class="mf" id="mcb"></div></div><div class="mp" id="mcpct">—</div></div>
-        <div><div class="sum-lbl">Бюджет</div><div class="sum-nums"><div class="sum-fact" id="ms" style="color:var(--green)">—</div><div class="sum-plan">/62K</div></div><div class="mb"><div class="mf" id="msb"></div></div><div class="mp" id="mspct">—</div></div>
-      </div>
-    </div>
-  </div>
+  <!-- Недельная динамика -->
+  <div class="sec-title">Текущая неделя — динамика</div>
+  <div class="week-grid" id="week-grid"></div>
 
   <!-- Gauges -->
   <div class="gauge-row">
@@ -218,14 +213,14 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
     <div class="gauge"><div class="g-lbl">CPQL — стоимость квал. лида</div><div class="g-main"><div class="g-fact" id="gcpql" style="color:var(--green)">—</div><div class="g-sep">/</div><div class="g-plan" id="gcpqlp">—</div><div class="g-unit">AED</div></div><div class="g-bar"><div class="g-fill" id="gcpqlb"></div></div><div class="g-note" id="gcpqln">—</div></div>
   </div>
 
-  <!-- ── SALES BLOCK ── -->
-  <div class="sec-title">Воронка продаж</div>
+  <!-- ── ОБЩАЯ ВОРОНКА ── -->
+  <div class="sec-title">Воронка продаж — месяц накопительно</div>
 
-  <!-- Вчера -->
-  <div class="sales-yesterday" id="sales-yesterday"></div>
+  <!-- KPI воронки -->
+  <div class="funnel-kpi" id="funnel-kpi"></div>
 
-  <!-- ── MANAGERS ── -->
-  <div class="sec-title">Менеджеры — воронка за месяц</div>
+  <!-- ── МЕНЕДЖЕРЫ ── -->
+  <div class="sec-title">Разбивка по менеджерам</div>
   <div class="mgr-row" id="mgr-row"></div>
 
 
@@ -405,16 +400,17 @@ async function loadAll() {
       }
     }
 
-    // SALES — by date cols (work for any date range)
+    // SALES — по дате перехода в стадию, с суммами
     const dtCQ = parseDate(row['Date "Quotation"']         || cols[5] || '');
     const dtCP = parseDate(row['Date "Awaiting Payment"']  || cols[6] || '');
     const dtPD = parseDate(row['Date "Payment done"']      || cols[7] || '');
     const stage = (row['Стадия сделки'] || cols[8] || '').trim();
+    const amount = parseFloat(row['Сумма'] || cols[10] || '') || 0;
 
-    if (dtCQ) { const k=dkOf(dtCQ); if(!salesByDay[k])salesByDay[k]={cq:0,cp:0,pd:0,pp:0}; salesByDay[k].cq++; }
-    if (dtCP) { const k=dkOf(dtCP); if(!salesByDay[k])salesByDay[k]={cq:0,cp:0,pd:0,pp:0}; salesByDay[k].cp++; }
-    if (dtPD) { const k=dkOf(dtPD); if(!salesByDay[k])salesByDay[k]={cq:0,cp:0,pd:0,pp:0}; salesByDay[k].pd++; }
-    if (stage===STAGE_PP && dtCQ) { const k=dkOf(dtCQ); if(!salesByDay[k])salesByDay[k]={cq:0,cp:0,pd:0,pp:0}; salesByDay[k].pp++; }
+    if (dtCQ) { const k=dkOf(dtCQ); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].cq++; salesByDay[k].cqSum+=amount; }
+    if (dtCP) { const k=dkOf(dtCP); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].cp++; }
+    if (dtPD) { const k=dkOf(dtPD); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].pd++; salesByDay[k].pdSum+=amount; }
+    if (stage===STAGE_PP && dtCQ) { const k=dkOf(dtCQ); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].pp++; }
   }
 
   // Spend
@@ -487,7 +483,17 @@ async function loadAll() {
     }
   }
 
-  render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendByDay,wL,wQ,wS,wCpl,pwl,pwq,pws,salesByDay,mgrData,mgrPlans});
+  // ── TOTAL FUNNEL ──
+  const totFunnel = {executing:0,postponed:0,awaiting:0,won:0,sumExecuting:0,sumPostponed:0,sumAwaiting:0,sumWon:0};
+  for (const m of MANAGERS) {
+    const d = mgrData[m];
+    totFunnel.executing   += d.executing;   totFunnel.sumExecuting   += d.sumExecuting;
+    totFunnel.postponed   += d.postponed;   totFunnel.sumPostponed   += d.sumPostponed;
+    totFunnel.awaiting    += d.awaiting;    totFunnel.sumAwaiting    += d.sumAwaiting;
+    totFunnel.won         += d.won;         totFunnel.sumWon         += d.sumWon;
+  }
+
+  render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendByDay,wL,wQ,wS,wCpl,salesByDay,mgrData,mgrPlans,totFunnel});
 
   s('ts','обновлено '+NOW.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}));
   document.querySelector('.btn').textContent = '↻ Обновить';
@@ -495,43 +501,147 @@ async function loadAll() {
 }
 
 // ── RENDER ──
-function render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendByDay,wL,wQ,wS,wCpl,pwl,pwq,pws,salesByDay,mgrData,mgrPlans}) {
-  // KPI
+function render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendByDay,wL,wQ,wS,wCpl,salesByDay,mgrData,mgrPlans,totFunnel}) {
+  // KPI marketing
   s('k-leads',f(totLeads)); s('kp-leads',P.leads); pill('kb-leads',pc(totLeads,P.leads));
   s('k-qual', f(totQuals)); s('kp-qual', P.qual);  pill('kb-qual', pc(totQuals,P.qual));
   s('k-cpl',  f(cpl));      s('kp-cpl', P.cpl);   pill('kb-cpl',  cpl>0?Math.round(P.cpl/cpl*100):0);
   s('k-cpql', f(cpql));     s('kp-cpql',P.cpql);  pill('kb-cpql', cpql>0?Math.round(P.cpql/cpql*100):0);
-  s('k-spend',f(totSpend));                        pill('kb-spend',pc(totSpend,P.spend));
+  s('k-spend',f(totSpend)); s('kp-spend',f(P.spend)); pill('kb-spend',pc(totSpend,P.spend));
 
-  // Main strip — all leads, no spend
+  // Main strip
   buildStrip('row-all', dayData, null, null, 'var(--green)', null);
 
   // Channel strips
   buildChannelStrips(dayData, qualByQdate);
 
-  // Week card
-  s('wl',f(wL)); s('wlp','/'+pwl); const wlp=pc(wL,pwl); bar('wlb',wlp,'var(--green)'); pEl('wlpct',wlp,'var(--green)');
-  s('wq',f(wQ)); s('wqp','/'+pwq); const wqp=pc(wQ,pwq); bar('wqb',wqp,'var(--coral)'); pEl('wqpct',wqp,'var(--coral)');
-  s('wc',f(wCpl)); s('wcp','/'+P.cpl); const wcp=wCpl>0?Math.round(P.cpl/wCpl*100):0; bar('wcb',wcp,'var(--sand)'); pEl('wcpct',wcp,'var(--sand)');
-  s('ws',f(wS)); const wsp=pc(wS,pws); bar('wsb',wsp,'var(--green)'); pEl('wspct',wsp,'var(--green)');
-
-  // Month card
-  const MN=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-  s('month-title',`🗓️ ${MN[MONTH]} ${YEAR}`);
-  s('ml',f(totLeads)); s('mlp','/'+P.leads); const mlp=pc(totLeads,P.leads); bar('mlb',mlp,'var(--green)'); pEl('mlpct',mlp,'var(--green)');
-  s('mq',f(totQuals)); s('mqp','/'+P.qual);  const mqp=pc(totQuals,P.qual);  bar('mqb',mqp,'var(--coral)'); pEl('mqpct',mqp,'var(--coral)');
-  s('mc',f(cpl));      s('mcp','/'+P.cpl);   const mcp=cpl>0?Math.round(P.cpl/cpl*100):0; bar('mcb',mcp,'var(--sand)'); pEl('mcpct',mcp,'var(--sand)');
-  s('ms',f(totSpend)); const msp=pc(totSpend,P.spend); bar('msb',msp,'var(--green)'); pEl('mspct',msp,'var(--green)');
+  // Week dynamic table
+  renderWeekGrid(dayData, salesByDay, spendByDay);
 
   // Gauges
   gaugeRender('gcpl','gcplb','gcplp','gcpln',cpl,P.cpl,true);
   gaugeRender('gcpql','gcpqlb','gcpqlp','gcpqln',cpql,P.cpql,true);
 
-  // Sales
-  renderSales(salesByDay);
+  // Funnel KPI
+  renderFunnelKPI(totFunnel);
 
   // Managers
   renderManagers(mgrData, mgrPlans);
+}
+
+// ── WEEK TABLE ──
+function renderWeekGrid(dayData, salesByDay, spendByDay) {
+  const container = document.getElementById('week-grid'); if(!container) return;
+  const mo = String(MONTH+1).padStart(2,'0');
+
+  // Build weeks of current month (Mon–Sun boundaries)
+  const weeks = [];
+  let d = 1;
+  while (d <= DIM) {
+    const dow = (new Date(YEAR, MONTH, d).getDay()) || 7;
+    const end = Math.min(d + (7 - dow), DIM);
+    const label = `${String(d).padStart(2,'0')} – ${String(end).padStart(2,'0')}`;
+    weeks.push({start:d, end, label});
+    d = end + 1;
+  }
+
+  // Accumulate per-week stats
+  const stats = weeks.map(w => {
+    let leads=0, quals=0, spend=0, won=0, wonSum=0, exec=0;
+    for (let day=w.start; day<=w.end; day++) {
+      if (day > DOM) break; // no future days
+      const k=`${YEAR}-${mo}-${String(day).padStart(2,'0')}`;
+      const dd = dayData[k];
+      if (dd) {
+        leads += Object.values(dd.leads).reduce((a,b)=>a+b,0);
+        quals += Object.values(dd.quals).reduce((a,b)=>a+b,0);
+      }
+      spend  += spendByDay[k]||0;
+      const sd = salesByDay[k]||{};
+      won    += sd.pd||0;
+      wonSum += sd.pdSum||0;
+      exec   += sd.cq||0;
+    }
+    const cpq = exec>0&&spend>0 ? Math.round(spend/exec) : 0;
+    const cpd = won>0&&spend>0  ? Math.round(spend/won)  : 0;
+    return {leads, quals, spend, won, wonSum, exec, cpq, cpd};
+  });
+
+  // Determine current week index
+  const curWkIdx = weeks.findIndex(w => DOM >= w.start && DOM <= w.end);
+
+  const rows = [
+    {label:'Расходы (AED)',    color:'var(--green)', fmt: s => s.spend>0?f(s.spend):'—'},
+    {label:'Продажи (AED)',    color:'var(--green)', fmt: s => s.wonSum>0?f(s.wonSum):'—'},
+    {label:'Квалы',            color:'var(--coral)', fmt: s => s.quals||'—'},
+    {label:'Квоты',            color:'#3D534E',      fmt: s => s.exec||'—'},
+    {label:'Продажи (кол-во)', color:'var(--green)', fmt: s => s.won||'—'},
+    {label:'Цена квота (AED)', color:'var(--sand)',  fmt: s => s.cpq>0?s.cpq:'—'},
+    {label:'Цена продажи (AED)',color:'var(--sand)', fmt: s => s.cpd>0?s.cpd:'—'},
+  ];
+
+  // Build table
+  const colW = `${Math.max(100, Math.floor(80/weeks.length))}px`;
+  let html = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:auto;margin-bottom:28px">
+  <table style="width:100%;border-collapse:collapse;font-family:'Inter',sans-serif">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:14px 20px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);min-width:140px">Показатель</th>`;
+  weeks.forEach((w,i) => {
+    const isCur = i===curWkIdx;
+    html += `<th style="text-align:right;padding:14px 16px;font-size:11px;font-weight:${isCur?'700':'600'};color:${isCur?'var(--green)':'var(--muted)'};border-bottom:1px solid var(--border);min-width:${colW};white-space:nowrap;background:${isCur?'rgba(61,83,78,.04)':'transparent'}">${w.label}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  rows.forEach((row, ri) => {
+    html += `<tr>
+      <td style="padding:12px 20px;font-size:12px;font-weight:500;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap">${row.label}</td>`;
+    weeks.forEach((w,i) => {
+      const isCur = i===curWkIdx;
+      const val = stats[i] ? row.fmt(stats[i]) : '—';
+      // Delta vs prev week
+      let delta = '';
+      if (i > 0 && stats[i] && stats[i-1]) {
+        const cur = typeof val==='number' ? val : parseFloat(String(val).replace(/[^0-9.]/g,''))||0;
+        const prev = parseFloat(String(row.fmt(stats[i-1])).replace(/[^0-9.]/g,''))||0;
+        if (prev > 0 && cur > 0) {
+          const pct = Math.round((cur-prev)/prev*100);
+          if (pct !== 0) {
+            const up = pct > 0;
+            // For cost metrics, up is bad
+            const isCost = row.label.includes('Цена')||row.label.includes('Расход');
+            const good = isCost ? !up : up;
+            delta = `<div style="font-size:10px;font-weight:600;color:${good?'#1D9E75':'var(--coral)'}">${up?'▲':'▼'}${Math.abs(pct)}%</div>`;
+          }
+        }
+      }
+      html += `<td style="text-align:right;padding:12px 16px;font-size:13px;font-weight:${isCur?'700':'500'};color:${isCur?row.color:'var(--text)'};border-bottom:1px solid var(--border);background:${isCur?'rgba(61,83,78,.04)':'transparent'}">${val}${delta}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  container.innerHTML = html;
+}
+
+// ── FUNNEL KPI (общая) ──
+function renderFunnelKPI(totFunnel) {
+  const container = document.getElementById('funnel-kpi'); if(!container) return;
+  const fmtAed = n => n>=1000 ? Math.round(n/1000)+'K AED' : n+' AED';
+  const stages = [
+    {label:'Квоты',            color:'#3D534E', count:totFunnel.executing, sum:totFunnel.sumExecuting},
+    {label:'Отложенные',       color:'var(--muted)', count:totFunnel.postponed, sum:totFunnel.sumPostponed},
+    {label:'Ожидают оплаты',   color:'var(--sand)', count:totFunnel.awaiting, sum:totFunnel.sumAwaiting},
+    {label:'Оплачено',         color:'var(--green)', count:totFunnel.won, sum:totFunnel.sumWon},
+  ];
+  container.innerHTML = stages.map(st=>`
+    <div class="fk-card">
+      <div class="fk-top" style="background:${st.color}"></div>
+      <div class="fk-label">${st.label}</div>
+      <div class="fk-count" style="color:${st.color}">${st.count}</div>
+      <div class="fk-sum" style="color:${st.color}">${fmtAed(st.sum)}</div>
+      <div class="fk-sub">сделок за месяц</div>
+    </div>`).join('');
 }
 
 // ── STRIP ──
@@ -556,9 +666,9 @@ function buildStrip(containerId, dayData, qualByQdate, chId, accentColor) {
     const bw=l>0?Math.round(l/maxL*100):0;
     const fc=l>0?accentColor:'var(--muted2)';
 
-    // +X requalified: how many leads were qualified on date k (for this channel)
+    // +X requalified: только для вчерашнего дня
     let rqTxt='';
-    if(!fut && qualByQdate) {
+    if(!fut && qualByQdate && k === ydayKey) {
       const rqDay = qualByQdate[k];
       if(rqDay) {
         const rqN = chId ? (rqDay[chId]||0) : Object.values(rqDay).reduce((a,b)=>a+b,0);
@@ -623,51 +733,6 @@ function buildChannelStrips(dayData, qualByQdate) {
     if(!totals[ch.id]||totals[ch.id].tl===0) continue;
     buildStrip(`sch-${ch.id}`, dayData, qualByQdate, ch.id, ch.bg);
   }
-}
-
-// ── SALES FUNNEL RENDER ──
-function renderSales(salesByDay) {
-  const ydayKey = dkOf(YDAY);
-
-  // Yesterday values
-  const yd = salesByDay[ydayKey]||{cq:0,cp:0,pd:0,pp:0};
-
-  // Weekly accumulations (current month, week by week)
-  const mo = String(MONTH+1).padStart(2,'0');
-  let moCq=0,moCp=0,moPd=0,moPp=0;
-  let wkCq=0,wkCp=0,wkPd=0,wkPp=0;
-
-  for(let d=1;d<=DIM;d++){
-    const k=`${YEAR}-${mo}-${String(d).padStart(2,'0')}`;
-    const dt=new Date(YEAR,MONTH,d);
-    const sd=salesByDay[k]||{cq:0,cp:0,pd:0,pp:0};
-
-    if(d<=DOM){
-      moCq+=sd.cq; moCp+=sd.cp; moPd+=sd.pd; moPp+=sd.pp;
-      if(dt>=WK_MON){ wkCq+=sd.cq; wkCp+=sd.cp; wkPd+=sd.pd; wkPp+=sd.pp; }
-    }
-  }
-
-  // Yesterday cards
-  const cards = [
-    {label:'Confirm Quotation', val:yd.cq, week:wkCq, month:moCq, color:'#3D534E'},
-    {label:'Collect Payment',   val:yd.cp, week:wkCp, month:moCp, color:'#DCAA6D'},
-    {label:'Payment done',      val:yd.pd, week:wkPd, month:moPd, color:'#F66E4C'},
-    {label:'Postponed',         val:yd.pp, week:wkPp, month:moPp, color:'#A8B5B0'},
-  ];
-
-  const yContainer = document.getElementById('sales-yesterday');
-  yContainer.innerHTML = cards.map(c=>`
-    <div class="sy-card">
-      <div class="sy-card-top" style="background:${c.color}"></div>
-      <div class="sy-label">${c.label}</div>
-      <div class="sy-val" style="color:${c.color}">${c.val}</div>
-      <div class="sy-sub">вчера</div>
-      <div class="sy-week" style="color:${c.color}">${c.week} <span style="font-size:10px;font-weight:500;color:var(--muted)">неделя</span></div>
-      <div class="sy-month">${c.month} за месяц</div>
-    </div>
-  `).join('');
-
 }
 
 // ── MANAGERS ──
