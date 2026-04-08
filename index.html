@@ -262,11 +262,29 @@ const DOW   = NOW.getDay() || 7;
 const YDAY = new Date(NOW); YDAY.setDate(YDAY.getDate()-1);
 
 const SRC_MAP = {
+  // Google
   'google ads':'google','google search':'google','google':'google',
+  // SEO
   'seo':'seo','organic search':'seo','organic':'seo',
+  // Meta
   'meta ads':'meta','facebook':'meta','meta':'meta',
-  'instagram':'instagram',
+  // Instagram
+  'instagram':'instagram','instagram guide ( написали "1" первым сообщением)':'instagram',
+  // Incoming call
   'incoming call':'incall','incall':'incall',
+  // Other known sources — mapped to other
+  'ai':'other','agent':'other','recommendation':'other',
+  'tiktok':'other','b2b sales':'other','email (klaviyo)':'other',
+  // Multi-value: take first known source
+  'google ads\nagent':'google','other / unknown\ngoogle ads':'google',
+  'instagram\nfacebook':'instagram','instagram\ngoogle search':'instagram',
+  'instagram\nother / unknown':'instagram',
+  'agent\nrecommendation':'other','recommendation\nagent':'other',
+  'other / unknown\nincoming call':'incall',
+  'other / unknown\ninstagram':'instagram',
+  'other / unknown\nmeta ads':'meta',
+  'meta ads\nother / unknown':'meta',
+  // Fallback
   'other / unknown':'other','other':'other','unknown':'other','':'other'
 };
 
@@ -360,7 +378,13 @@ function parseDate(str) {
 function dkOf(dt) {
   return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
 }
-function srcKey(raw) { return SRC_MAP[(raw||'').toLowerCase().trim()]||'other'; }
+function srcKey(raw) {
+  const key = (raw||'').toLowerCase().trim();
+  if (SRC_MAP[key] !== undefined) return SRC_MAP[key];
+  // Try first line if multi-line value
+  const firstLine = key.split('\n')[0].trim();
+  return SRC_MAP[firstLine] || 'other';
+}
 function isSameDay(a,b) { return a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
 
 // Monday of the week containing dt
@@ -456,11 +480,13 @@ async function loadAll() {
     const srcLabel = buildSrcLabel(row['Lead Source'] || cols[0] || '', customerInfo);
     const dealId = (row['ID'] || cols[3] || '').trim();
 
-    if (dtCQ && dkOf(dtCQ) === ydayKey) {
-      ydayQuots.push({id: dealId, src: srcLabel, amount});
-    }
-    if (dtPD && dkOf(dtPD) === ydayKey) {
+    const isYdayQuot  = dtCQ && dkOf(dtCQ) === ydayKey;
+    const isYdaySale  = dtPD && dkOf(dtPD) === ydayKey;
+    // If same deal reached both Quotation and Payment done yesterday — show only in Sales
+    if (isYdaySale) {
       ydaySales.push({id: dealId, src: srcLabel, amount});
+    } else if (isYdayQuot) {
+      ydayQuots.push({id: dealId, src: srcLabel, amount});
     }
   }
 
@@ -914,10 +940,15 @@ function buildSrcLabel(leadSourceRaw, customerInfo) {
 }
 
 function parseUtm(str, key) {
-  // Try URL-style: key=value
-  const re = new RegExp(`(?:^|[&\\s,])${key}=([^&\\s,]+)`, 'i');
-  const m = str.match(re);
-  if (m) return decodeURIComponent(m[1]).replace(/\+/g,' ').trim();
+  // Format 1: "UTM Campaign: value" / "UTM Term: value" (newline-separated, colon)
+  const label = key.replace('utm_', 'UTM ').replace('_', ' ');
+  const re1 = new RegExp(label + ':\\s*([^\\n\\r]+)', 'i');
+  const m1 = str.match(re1);
+  if (m1) return m1[1].trim();
+  // Format 2: URL-style utm_campaign=value
+  const re2 = new RegExp('(?:^|[&\\s,])' + key + '=([^&\\s,]+)', 'i');
+  const m2 = str.match(re2);
+  if (m2) return decodeURIComponent(m2[1]).replace(/\+/g, ' ').trim();
   return '';
 }
 
