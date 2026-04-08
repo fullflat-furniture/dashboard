@@ -105,6 +105,23 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .sy-week{font-size:14px;font-weight:600;margin-top:4px}
 .sy-month{font-size:12px;font-weight:400;color:var(--muted)}
 
+/* ── YESTERDAY BLOCK ── */
+.yday-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.yday-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px;position:relative;overflow:hidden}
+.yday-card-top{position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+.yday-card-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:16px}
+.yday-card-title{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+.yday-card-count{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.yday-card-sum{font-size:13px;font-weight:600;color:var(--muted);margin-left:auto}
+.yday-src-list{display:flex;flex-direction:column;gap:6px}
+.yday-src-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--s2);border-radius:8px}
+.yday-src-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.yday-src-label{font-size:12px;font-weight:500;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yday-src-n{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0}
+.yday-src-sum{font-size:11px;font-weight:500;color:var(--muted);flex-shrink:0}
+.yday-empty{font-size:12px;font-weight:500;color:var(--muted);padding:10px 0}
+@media(max-width:700px){.yday-grid{grid-template-columns:1fr}}
+
 /* ── PASSWORD ── */
 #pwd{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
 .pb{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:44px 48px;width:380px;box-shadow:0 20px 60px rgba(61,83,78,.12)}
@@ -202,6 +219,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
   <!-- Лиды по каналам -->
   <div class="sec-title">Лиды по каналам — Meta · Google · Instagram · SEO · Other</div>
   <div id="channel-strips"></div>
+
+  <!-- Вчера: квоты и продажи -->
+  <div class="sec-title" id="yday-title">Вчера — квоты и продажи</div>
+  <div class="yday-grid" id="yday-grid"></div>
 
   <!-- Недельная динамика -->
   <div class="sec-title">Текущая неделя — динамика</div>
@@ -380,6 +401,12 @@ async function loadAll() {
   const qualByQdate= {};   // +X requalified: key = qual date, val = {src:n, total:n}
   const salesByDay = {};   // sales funnel: key = date, val = {cq,cp,pd,pp}
 
+  // Yesterday detail: individual deals that moved to Quotation or Won yesterday
+  // Each entry: {id, src, amount}
+  const ydayQuots = [];
+  const ydaySales = [];
+  const ydayKey   = dkOf(YDAY);
+
   let totLeads=0, totQuals=0;
 
   for (const row of rawDeals) {
@@ -423,6 +450,18 @@ async function loadAll() {
     if (dtCP) { const k=dkOf(dtCP); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].cp++; }
     if (dtPD) { const k=dkOf(dtPD); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].pd++; salesByDay[k].pdSum+=amount; }
     if (stage===STAGE_PP && dtCQ) { const k=dkOf(dtCQ); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].pp++; }
+
+    // ── YESTERDAY DETAIL ──
+    const customerInfo = (row['Customer Info'] || cols[11] || '').trim();
+    const srcLabel = buildSrcLabel(row['Lead Source'] || cols[0] || '', customerInfo);
+    const dealId = (row['ID'] || cols[3] || '').trim();
+
+    if (dtCQ && dkOf(dtCQ) === ydayKey) {
+      ydayQuots.push({id: dealId, src: srcLabel, amount});
+    }
+    if (dtPD && dkOf(dtPD) === ydayKey) {
+      ydaySales.push({id: dealId, src: srcLabel, amount});
+    }
   }
 
   // Spend
@@ -511,7 +550,7 @@ async function loadAll() {
     totFunnel.won         += d.won;         totFunnel.sumWon         += d.sumWon;
   }
 
-  render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendByDay,wL,wQ,wS,wCpl,salesByDay,mgrData,mgrPlans,totFunnel});
+  render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendByDay,wL,wQ,wS,wCpl,salesByDay,mgrData,mgrPlans,totFunnel,ydayQuots,ydaySales});
 
   s('ts','обновлено '+NOW.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}));
   document.querySelector('.btn').textContent = '↻ Обновить';
@@ -519,7 +558,7 @@ async function loadAll() {
 }
 
 // ── RENDER ──
-function render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendByDay,wL,wQ,wS,wCpl,salesByDay,mgrData,mgrPlans,totFunnel}) {
+function render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendByDay,wL,wQ,wS,wCpl,salesByDay,mgrData,mgrPlans,totFunnel,ydayQuots,ydaySales}) {
   // KPI marketing
   s('k-leads',f(totLeads)); s('kp-leads',P.leads); pill('kb-leads',pc(totLeads,P.leads));
   s('k-qual', f(totQuals)); s('kp-qual', P.qual);  pill('kb-qual', pc(totQuals,P.qual));
@@ -532,6 +571,9 @@ function render({totLeads,totQuals,totSpend,cpl,cpql,dayData,qualByQdate,spendBy
 
   // Channel strips
   buildChannelStrips(dayData, qualByQdate);
+
+  // Yesterday block
+  renderYesterdayBlock(ydayQuots, ydaySales);
 
   // Week dynamic table
   renderWeekGrid(dayData, salesByDay, spendByDay);
@@ -844,6 +886,93 @@ function renderManagers(mgrData, mgrPlans) {
   }
 
   container.innerHTML = html;
+}
+
+// ── SOURCE LABEL (with Customer Info UTM) ──
+function buildSrcLabel(leadSourceRaw, customerInfo) {
+  const base = srcKey(leadSourceRaw);
+  // Map base key to readable label
+  const BASE_LABELS = {
+    meta:'Meta Ads', google:'Google Ads', instagram:'Instagram',
+    seo:'SEO', incall:'Incoming Call', other:'Other'
+  };
+  const baseLabel = BASE_LABELS[base] || leadSourceRaw || 'Other';
+
+  if (!customerInfo) return baseLabel;
+
+  // Parse UTM params from Customer Info string
+  // Supports key=value pairs separated by & or newlines or spaces
+  const utmCampaign = parseUtm(customerInfo, 'utm_campaign');
+  const utmTerm     = parseUtm(customerInfo, 'utm_term');
+
+  if (!utmCampaign && !utmTerm) return baseLabel;
+
+  const parts = [baseLabel];
+  if (utmCampaign) parts.push(utmCampaign);
+  if (utmTerm)     parts.push(utmTerm);
+  return parts.join(' · ');
+}
+
+function parseUtm(str, key) {
+  // Try URL-style: key=value
+  const re = new RegExp(`(?:^|[&\\s,])${key}=([^&\\s,]+)`, 'i');
+  const m = str.match(re);
+  if (m) return decodeURIComponent(m[1]).replace(/\+/g,' ').trim();
+  return '';
+}
+
+// ── YESTERDAY BLOCK ──
+function renderYesterdayBlock(ydayQuots, ydaySales) {
+  const container = document.getElementById('yday-grid'); if(!container) return;
+
+  const titleEl = document.getElementById('yday-title');
+  if (titleEl) {
+    const dd = String(YDAY.getDate()).padStart(2,'0');
+    const mm = String(YDAY.getMonth()+1).padStart(2,'0');
+    titleEl.textContent = `Вчера (${dd}.${mm}) — квоты и продажи`;
+  }
+
+  const fmtAed = n => n >= 1000 ? Math.round(n/1000)+'K AED' : n ? n+' AED' : '—';
+
+  const SRC_COLORS = {
+    'Meta Ads':'#3D534E','Google Ads':'#F66E4C','Instagram':'#DCAA6D',
+    'SEO':'#1D9E75','Incoming Call':'#7A8A85','Other':'#A8B5B0'
+  };
+  function dotColor(label) {
+    for (const [k,c] of Object.entries(SRC_COLORS)) {
+      if (label.startsWith(k)) return c;
+    }
+    return '#A8B5B0';
+  }
+
+  function buildCard(title, accentColor, deals) {
+    const total    = deals.length;
+    const totalSum = deals.reduce((s,d) => s+d.amount, 0);
+
+    const listHtml = deals.length === 0
+      ? `<div class="yday-empty">Нет данных за вчера</div>`
+      : deals.map((d, i) => `
+        <div class="yday-src-item">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);flex-shrink:0;min-width:24px">#${d.id || (i+1)}</div>
+          <div class="yday-src-dot" style="background:${dotColor(d.src)}"></div>
+          <div class="yday-src-label" title="${d.src}">${d.src}</div>
+          <div class="yday-src-sum" style="color:${accentColor};font-weight:600;flex-shrink:0">${fmtAed(d.amount)}</div>
+        </div>`).join('');
+
+    return `<div class="yday-card">
+      <div class="yday-card-top" style="background:${accentColor}"></div>
+      <div class="yday-card-hd">
+        <div class="yday-card-title">${title}</div>
+        <div class="yday-card-count" style="color:${accentColor}">${total}</div>
+        ${totalSum > 0 ? `<div class="yday-card-sum">${fmtAed(totalSum)}</div>` : ''}
+      </div>
+      <div class="yday-src-list">${listHtml}</div>
+    </div>`;
+  }
+
+  container.innerHTML =
+    buildCard('Квоты вчера', '#3D534E', ydayQuots) +
+    buildCard('Продажи вчера', 'var(--green)', ydaySales);
 }
 
 function gaugeRender(fid,bid,pid,nid,fact,plan,inv) {
