@@ -456,30 +456,36 @@ async function loadAll() {
 
     const created = parseDate(row['Дата создания'] || cols[2] || '');
     if (!created) continue;
-    const inMonth = created.getFullYear()===YEAR && created.getMonth()===MONTH;
+    const inMonthCreated = created.getFullYear()===YEAR && created.getMonth()===MONTH;
 
     const stage = (row['Стадия сделки'] || cols[8] || '').trim();
     const amount = parseFloat(row['Сумма'] || cols[10] || '') || 0;
     const statusRaw = (row['Markening lead Status'] || cols[1] || '').trim().toLowerCase();
     const isLose = stage === 'LOSE';
 
-    // Leads & Quals — all month, not LOSE
-    if (inMonth && !isLose) {
+    // Leads & Quals — by creation date, not LOSE
+    if (inMonthCreated && !isLose) {
       mgrData[mgr].leads++;
       if (statusRaw === 'qualified') mgrData[mgr].quals++;
     }
 
-    // Sales funnel — by priority stage, all time (накопительный за месяц по дате создания)
-    // Use creation date for month filter; funnel shows current state
-    if (inMonth) {
-      const priority = STAGE_PRIORITY[stage] || 0;
-      if (priority > 0) {
-        // Count in highest stage only
-        if (stage === 'WON')           { mgrData[mgr].won++;       mgrData[mgr].sumWon      += amount; }
-        else if (stage === 'FINAL_INVOICE') { mgrData[mgr].awaiting++; mgrData[mgr].sumAwaiting += amount; }
-        else if (stage === 'UC_EP3E63'){ mgrData[mgr].postponed++; mgrData[mgr].sumPostponed+= amount; }
-        else if (stage === 'EXECUTING'){ mgrData[mgr].executing++; mgrData[mgr].sumExecuting+= amount; }
-      }
+    // Sales funnel — by date of stage transition (same logic as salesByDay)
+    const dtCQ = parseDate(row['Date "Quotation"']        || cols[5] || '');
+    const dtCP = parseDate(row['Date "Awaiting Payment"'] || cols[6] || '');
+    const dtPD = parseDate(row['Date "Payment done"']     || cols[7] || '');
+
+    const inMonthWon      = dtPD && dtPD.getFullYear()===YEAR && dtPD.getMonth()===MONTH;
+    const inMonthAwaiting = dtCP && dtCP.getFullYear()===YEAR && dtCP.getMonth()===MONTH;
+    const inMonthExec     = dtCQ && dtCQ.getFullYear()===YEAR && dtCQ.getMonth()===MONTH;
+
+    if (stage === 'WON' && inMonthWon) {
+      mgrData[mgr].won++; mgrData[mgr].sumWon += amount;
+    } else if (stage === 'FINAL_INVOICE' && inMonthAwaiting) {
+      mgrData[mgr].awaiting++; mgrData[mgr].sumAwaiting += amount;
+    } else if (stage === 'UC_EP3E63' && inMonthExec) {
+      mgrData[mgr].postponed++; mgrData[mgr].sumPostponed += amount;
+    } else if (stage === 'EXECUTING' && inMonthExec) {
+      mgrData[mgr].executing++; mgrData[mgr].sumExecuting += amount;
     }
   }
 
