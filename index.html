@@ -391,7 +391,15 @@ const WK_MON = weekMon(NOW); // current week monday
 // ── LOAD ──
 async function loadAll() {
   document.querySelector('.btn').textContent = '⟳ ...';
-  const [rawDeals, rawSpend, rawPlans] = await Promise.all([csv('Sheet1'), csv('ad_spend'), csv('plans')]);
+  const [rawDeals, rawSpend, rawPlans, rawAirtable] = await Promise.all([csv('Sheet1'), csv('ad_spend'), csv('plans'), csv('airtable_sums')]);
+
+  // Build Airtable sums lookup: dealId -> total_airtable (допродажи)
+  const atSums = {};
+  for (const r of rawAirtable) {
+    const id = (r.deal_id || '').trim();
+    const total = parseFloat(r.total_airtable);
+    if (id && !isNaN(total) && total > 0) atSums[id] = total;
+  }
 
   const curMonth = `${YEAR}-${String(MONTH+1).padStart(2,'0')}`;
 
@@ -465,7 +473,10 @@ async function loadAll() {
     const dtCP = parseDate(row['Date "Awaiting Payment"']  || cols[6] || '');
     const dtPD = parseDate(row['Date "Payment done"']      || cols[7] || '');
     const stage = (row['Стадия сделки'] || cols[8] || '').trim();
-    const amount = parseFloat(row['Сумма'] || cols[10] || '') || 0;
+    const _dealId = (row['ID'] || cols[3] || '').trim();
+    const _amountRaw = parseFloat(row['Сумма'] || cols[10] || '') || 0;
+    // Если WON — берём сумму из Airtable (включает допродажи)
+    const amount = (stage === 'WON' && atSums[_dealId]) ? atSums[_dealId] : _amountRaw;
 
     if (dtCQ) { const k=dkOf(dtCQ); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].cq++; salesByDay[k].cqSum+=amount; }
     if (dtCP) { const k=dkOf(dtCP); if(!salesByDay[k])salesByDay[k]={cq:0,cqSum:0,cp:0,pd:0,pdSum:0,pp:0}; salesByDay[k].cp++; }
@@ -534,7 +545,10 @@ async function loadAll() {
     const inMonthCreated = created.getFullYear()===YEAR && created.getMonth()===MONTH;
 
     const stage = (row['Стадия сделки'] || cols[8] || '').trim();
-    const amount = parseFloat(row['Сумма'] || cols[10] || '') || 0;
+    const _mgrDealId = (row['ID'] || cols[3] || '').trim();
+    const _mgrAmountRaw = parseFloat(row['Сумма'] || cols[10] || '') || 0;
+    // Если WON — берём сумму из Airtable (включает допродажи)
+    const amount = (stage === 'WON' && atSums[_mgrDealId]) ? atSums[_mgrDealId] : _mgrAmountRaw;
     const statusRaw = (row['Markening lead Status'] || cols[1] || '').trim().toLowerCase();
     const isLose = stage === 'LOSE';
 
